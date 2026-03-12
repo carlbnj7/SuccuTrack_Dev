@@ -19,12 +19,6 @@ if (!$plant) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized.']); exit;
 }
 
-// ==============================================
-//  OPENWEATHERMAP API KEY
-//  Go to https://openweathermap.org
-//  Sign up → My API Keys → copy your key
-//  Paste it below replacing YOUR_API_KEY_HERE
-// ==============================================
 $api_key = '10e1cd7f9a2dc254e99c16980370adbf';
 
 $city     = urlencode($plant['city']);
