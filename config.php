@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$db   = 'succulent_monitoring';
+$db   = 'succutrack';
 $user = 'root';
 $pass = '';
 try {

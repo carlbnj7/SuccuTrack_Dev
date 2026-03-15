@@ -31,7 +31,7 @@ $recent = $pdo->query("
 
 // Latest reading per plant for map markers
 $plantLatest = $pdo->query("
-    SELECT p.plant_name, p.city, u.username,
+    SELECT p.plant_id, p.plant_name, p.city, u.username,
            h.humidity_percent, h.status, h.recorded_at
     FROM plants p
     JOIN users u ON p.user_id = u.user_id
@@ -61,6 +61,7 @@ $plantLatest = $pdo->query("
     <div class="live-indicator" id="liveIndicator">
       <span class="dot dot-on"></span> Live
     </div>
+    <a href="manage_plants.php" class="btn btn-sm">Manage Plants</a>
     <a href="manage_users.php" class="btn btn-sm">Manage Users</a>
     <a href="logout.php" class="btn btn-sm">Logout</a>
   </div>
@@ -218,7 +219,7 @@ $plantLatest = $pdo->query("
 
 <script>
 // ── Leaflet Map ──
-const map = L.map('map').setView([8.3667, 124.8667], 13);
+const map = L.map('map').setView([12.8797, 121.7740], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors',
@@ -226,21 +227,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 const plants = <?= json_encode($plantLatest) ?>;
-
 const colors = { dry: '#b85c2a', ideal: '#4a7c59', humid: '#3a6fa8', '': '#96aea0' };
+const allMarkers = [];
 
-// Slightly offset markers so they don't stack
-const offsets = [
-  [0, 0], [0.0008, 0.0008], [-0.0008, 0.0008]
-];
-
-plants.forEach((p, i) => {
-  const status = (p.status || '').toLowerCase();
-  const color  = colors[status] || colors[''];
-  const lat    = 8.3667 + (offsets[i] ? offsets[i][0] : 0);
-  const lng    = 124.8667 + (offsets[i] ? offsets[i][1] : 0);
-
-  const icon = L.divIcon({
+function makePinIcon(color) {
+  return L.divIcon({
     className: '',
     html: `<div style="
       background:${color};
@@ -253,24 +244,79 @@ plants.forEach((p, i) => {
     iconSize: [34, 34],
     iconAnchor: [17, 34]
   });
+}
 
-  const humidity = p.humidity_percent ? p.humidity_percent + '%' : 'No data';
-  const time     = p.recorded_at
-    ? new Date(p.recorded_at).toLocaleString()
-    : '—';
+// Geocode a city string via Nominatim (rate-limited: 1 request/sec)
+async function geocodeCity(city) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+  try {
+    const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };
+    }
+  } catch (e) { /* network error */ }
+  return null;
+}
 
-  L.marker([lat, lng], { icon })
-    .addTo(map)
-    .bindPopup(`
-      <div style="font-family:'DM Sans',sans-serif;min-width:160px;padding:4px 0;">
-        <div style="font-weight:600;font-size:.9rem;margin-bottom:4px;">🪴 ${p.plant_name}</div>
-        <div style="font-size:.78rem;color:#506358;margin-bottom:2px;">👤 ${p.username}</div>
-        <div style="font-size:.78rem;color:#506358;margin-bottom:6px;">📍 ${p.city}</div>
-        <div style="font-size:1.1rem;font-weight:700;color:${color};">${humidity}</div>
-        <div style="font-size:.72rem;color:#96aea0;margin-top:2px;">${time}</div>
-      </div>
-    `);
-});
+// Sleep helper for Nominatim rate limit (1 req/s)
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function addAllMarkers() {
+  // Deduplicate cities so we don't geocode the same city twice
+  const cityCache = {};
+
+  for (let i = 0; i < plants.length; i++) {
+    const p      = plants[i];
+    const status = (p.status || '').toLowerCase();
+    const color  = colors[status] || colors[''];
+    const city   = p.city;
+
+    let coords = cityCache[city];
+
+    if (!coords) {
+      if (i > 0) await sleep(1100); // Nominatim rate limit: 1 req/sec
+      coords = await geocodeCity(city);
+      if (coords) cityCache[city] = coords;
+    }
+
+    if (!coords) {
+      console.warn('Could not geocode city:', city);
+      continue;
+    }
+
+    // Tiny random offset (±0.0015°) so pins on the same city don't fully overlap
+    const jitter = () => (Math.random() - 0.5) * 0.003;
+    const lat = coords.lat + (cityCache[city]._used ? jitter() : 0);
+    const lng = coords.lng + (cityCache[city]._used ? jitter() : 0);
+    cityCache[city]._used = true;
+
+    const humidity = p.humidity_percent ? p.humidity_percent + '%' : 'No data';
+    const time     = p.recorded_at ? new Date(p.recorded_at).toLocaleString() : '—';
+
+    const marker = L.marker([lat, lng], { icon: makePinIcon(color) })
+      .addTo(map)
+      .bindPopup(`
+        <div style="font-family:'DM Sans',sans-serif;min-width:160px;padding:4px 0;">
+          <div style="font-weight:600;font-size:.9rem;margin-bottom:4px;">🪴 ${p.plant_name}</div>
+          <div style="font-size:.78rem;color:#506358;margin-bottom:2px;">👤 ${p.username}</div>
+          <div style="font-size:.78rem;color:#506358;margin-bottom:6px;">📍 ${city}</div>
+          <div style="font-size:1.1rem;font-weight:700;color:${color};">${humidity}</div>
+          <div style="font-size:.72rem;color:#96aea0;margin-top:2px;">${time}</div>
+        </div>
+      `);
+
+    allMarkers.push(marker);
+  }
+
+  // Fit map to show all markers if any were added
+  if (allMarkers.length > 0) {
+    const group = L.featureGroup(allMarkers);
+    map.fitBounds(group.getBounds().pad(0.15), { maxZoom: 13 });
+  }
+}
+
+addAllMarkers();
 
 // ── Auto-refresh logs every 5s ──
 function refreshLogs() {

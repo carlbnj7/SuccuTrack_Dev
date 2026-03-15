@@ -2,7 +2,7 @@
 session_start();
 if (!isset($_SESSION['user_id'])) { http_response_code(401); exit; }
 
-$conn    = new mysqli("localhost", "root", "", "succulent_monitoring");
+$conn    = new mysqli("localhost", "root", "", "succutrack");
 $user_id = $_SESSION['user_id'];
 $plant_id = intval($_POST['plant_id'] ?? 0);
 

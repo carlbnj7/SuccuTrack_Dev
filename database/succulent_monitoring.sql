@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS succulent_monitoring;
-CREATE DATABASE succulent_monitoring;
-USE succulent_monitoring;
+DROP DATABASE IF EXISTS succutrack;
+CREATE DATABASE succutrack;
+USE succutrack;
 
 --  TABLES
 

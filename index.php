@@ -1,9 +1,11 @@
-<?php
+<?php      
 session_start();
 if (isset($_SESSION['user_id'])) {
     header("Location: " . ($_SESSION['role'] === 'admin' ? 'admin_dashboard.php' : 'dashboard.php'));
     exit;
 }
+
+/* ── http://localhost/succutrackv2/index.php ── */
 
 $error = "";
 if ($_POST) {
