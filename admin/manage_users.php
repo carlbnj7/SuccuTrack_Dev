@@ -1,9 +1,9 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: index.php"); exit;
+    redirect_to("auth/login.php"); exit;
 }
-require 'config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $msg = $error = "";
 
@@ -38,7 +38,7 @@ if (($_GET['action'] ?? '') === 'delete' && isset($_GET['id'])) {
     if ($id && $id !== (int)$_SESSION['user_id']) {
         $pdo->prepare("DELETE FROM users WHERE user_id=?")->execute([$id]);
     }
-    header("Location: manage_users.php?deleted=1"); exit;
+    redirect_to("admin/manage_users.php?deleted=1"); exit;
 }
 if (isset($_GET['deleted'])) $msg = "User deleted successfully.";
 
@@ -52,11 +52,11 @@ $activePage = 'manage_users';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Users – SuccuTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="role-admin">
 <div class="app-layout">
-  <?php include 'sidebar.php'; ?>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <div class="main-content">
     <header class="topbar">

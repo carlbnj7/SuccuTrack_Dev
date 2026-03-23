@@ -3,7 +3,7 @@ session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     http_response_code(401); exit;
 }
-require 'config.php'; // Sets Asia/Manila timezone + MySQL session tz
+require_once __DIR__ . '/../config/config.php'; // Sets Asia/Manila timezone + MySQL session tz
 header('Content-Type: application/json');
 
 $recent = $pdo->query("

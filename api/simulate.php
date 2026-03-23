@@ -2,7 +2,7 @@
 session_start();
 if (!isset($_SESSION['user_id'])) { http_response_code(401); exit; }
 
-require 'config.php'; // Sets APP_TIMEZONE + MySQL time_zone in one place
+require_once __DIR__ . '/../config/config.php'; // Sets APP_TIMEZONE + MySQL time_zone in one place
 
 $user_id  = (int)$_SESSION['user_id'];
 $plant_id = intval($_POST['plant_id'] ?? 0);

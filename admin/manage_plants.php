@@ -1,9 +1,9 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: index.php"); exit;
+    redirect_to("auth/login.php"); exit;
 }
-require 'config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $msg = $error = "";
 
@@ -42,7 +42,7 @@ if (($_GET['action'] ?? '') === 'delete' && isset($_GET['id'])) {
     }
     $pdo->prepare("DELETE FROM humidity WHERE plant_id=?")->execute([$pid]);
     $pdo->prepare("DELETE FROM plants  WHERE plant_id=?")->execute([$pid]);
-    header("Location: manage_plants.php?deleted=1"); exit;
+    redirect_to("admin/manage_plants.php?deleted=1"); exit;
 }
 if (isset($_GET['deleted'])) $msg = "Plant deleted successfully.";
 
@@ -69,13 +69,13 @@ $activePage = 'manage_plants';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Plants – SuccuTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body class="role-admin">
 <div class="app-layout">
-  <?php include 'sidebar.php'; ?>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <div class="main-content">
     <header class="topbar">

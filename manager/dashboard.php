@@ -1,9 +1,9 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'manager') {
-    header("Location: index.php"); exit;
+    redirect_to("auth/login.php"); exit;
 }
-require 'config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $msg = "";
 
@@ -113,14 +113,14 @@ $_unreadBadge = get_unread_count($pdo, 'manager');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manager Dashboard – SuccuTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body class="role-manager">
 <div class="app-layout">
-  <?php include 'sidebar.php'; ?>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <div class="main-content">
     <header class="topbar">
@@ -130,7 +130,7 @@ $_unreadBadge = get_unread_count($pdo, 'manager');
       </div>
       <div class="topbar-right">
         <?php if ($_unreadBadge > 0): ?>
-        <a href="manager_dashboard.php?open=panel-newusers"
+        <a href="dashboard.php?open=panel-newusers"
            style="display:inline-flex;align-items:center;gap:5px;background:#fffbeb;border:1px solid #fcd34d;border-radius:20px;padding:3px 11px;font-size:.69rem;font-weight:700;color:#92400e;text-decoration:none;">
           🔔 <?= $_unreadBadge ?> new user<?= $_unreadBadge > 1 ? 's' : '' ?>
         </a>

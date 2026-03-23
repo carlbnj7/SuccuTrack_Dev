@@ -1,9 +1,9 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: index.php"); exit;
+    redirect_to("auth/login.php"); exit;
 }
-require 'config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $msg = "";
 
@@ -35,7 +35,7 @@ if (($_GET['action'] ?? '') === 'delete_log') {
         }
         $pdo->prepare("DELETE FROM humidity WHERE humidity_id = ?")->execute([$humidity_id]);
     }
-    header("Location: admin_dashboard.php?deleted=1"); exit;
+    redirect_to("admin/dashboard.php?deleted=1"); exit;
 }
 if (isset($_GET['deleted'])) $msg = "Record deleted successfully.";
 
@@ -119,7 +119,7 @@ $activePage = 'admin_dashboard';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard – SuccuTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/jquery.dataTables.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
@@ -127,7 +127,7 @@ $activePage = 'admin_dashboard';
 </head>
 <body class="role-admin">
 <div class="app-layout">
-  <?php include 'sidebar.php'; ?>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <div class="main-content">
     <header class="topbar">
@@ -137,7 +137,7 @@ $activePage = 'admin_dashboard';
       </div>
       <div class="topbar-right">
         <?php if ($_adminUnread > 0): ?>
-        <a href="admin_dashboard.php?jumptab=tab-onboarding"
+        <a href="dashboard.php?jumptab=tab-onboarding"
            style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #93c5fd;border-radius:20px;padding:3px 11px;font-size:.69rem;font-weight:700;color:#1e40af;text-decoration:none;">
           🔔 <?= $_adminUnread ?> notification<?= $_adminUnread > 1 ? 's' : '' ?>
         </a>
@@ -331,7 +331,7 @@ $activePage = 'admin_dashboard';
                   <td data-order="<?= $u['created_at'] ?>"><?= date('M d, Y', strtotime($u['created_at'])) ?></td>
                   <td>
                     <?php if ($u['user_id'] !== $_SESSION['user_id']): ?>
-                    <a href="delete_user.php?id=<?= $u['user_id'] ?>" class="btn btn-danger"
+                    <a href="../api/delete_user.php?id=<?= $u['user_id'] ?>" class="btn btn-danger"
                        onclick="return confirm('Delete <?= htmlspecialchars($u['username'], ENT_QUOTES) ?>?')">Delete</a>
                     <?php else: ?><span class="you-label">You</span><?php endif; ?>
                   </td>
@@ -378,7 +378,7 @@ $activePage = 'admin_dashboard';
                   <td><span class="badge badge-<?= strtolower($h['status']) ?>"><?= $h['status'] ?></span></td>
                   <td data-order="<?= $h['recorded_at'] ?>"><?= date('M d, Y H:i', strtotime($h['recorded_at'])) ?></td>
                   <td>
-                    <a href="admin_dashboard.php?action=delete_log&log_id=0&humidity_id=<?= $h['humidity_id'] ?>"
+                    <a href="dashboard.php?action=delete_log&log_id=0&humidity_id=<?= $h['humidity_id'] ?>"
                        class="btn btn-danger"
                        onclick="return confirm('Delete this reading and its log entries?')">Delete</a>
                   </td>
@@ -403,7 +403,7 @@ $activePage = 'admin_dashboard';
                   <td><span class="badge badge-<?= strtolower($r['status']) ?>"><?= $r['status'] ?></span></td>
                   <td data-order="<?= $r['recorded_at'] ?>"><?= date('M d, Y H:i', strtotime($r['recorded_at'])) ?></td>
                   <td>
-                    <a href="admin_dashboard.php?action=delete_log&log_id=<?= $r['log_id'] ?>&humidity_id=<?= $r['humidity_id'] ?>"
+                    <a href="dashboard.php?action=delete_log&log_id=<?= $r['log_id'] ?>&humidity_id=<?= $r['humidity_id'] ?>"
                        class="btn btn-danger"
                        onclick="return confirm('Delete this record?')">Delete</a>
                   </td>

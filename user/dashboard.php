@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit; }
-require 'config.php';
+if (!isset($_SESSION['user_id'])) { redirect_to("auth/login.php"); exit; }
+require_once __DIR__ . '/../config/config.php';
 
 $uid = (int)$_SESSION['user_id'];
 
@@ -103,18 +103,18 @@ $activePage = 'dashboard';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dashboard – SuccuTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body class="role-user">
 <div class="app-layout">
-  <?php include 'sidebar.php'; ?>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <div class="main-content">
     <header class="topbar">
       <div class="topbar-left">
         <button class="sb-toggle" onclick="openSidebar()">☰</button>
-        <div class="topbar-title">My <span>Plants</span></div>
+        <div class="topbar-title">User <span>Dashboard</span></div>
       </div>
       <div class="topbar-right">
         <div class="live-indicator"><span class="dot dot-on"></span> Live</div>
@@ -434,7 +434,7 @@ function fetchReading(pid) {
   const form = new FormData();
   form.append('plant_id', pid);
 
-  fetch('simulate.php', {method:'POST', body:form})
+  fetch('../api/simulate.php', {method:'POST', body:form})
     .then(r => r.json())
     .then(data => {
       btn.disabled = false; btn.innerHTML = '🌐 Fetch Live Reading';
